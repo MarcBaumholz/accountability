@@ -1,0 +1,17 @@
+[Unit]
+Description=Accountability nightly backup (SQLite-Momentaufnahme)
+Documentation=file:///home/pi/apps/accountability/scripts/backup-pi.sh
+# Absichtlich keine Abhängigkeit von docker.service: das Backup liest die Datei
+# direkt, nicht über den Container. Ein gestoppter Container ist kein Grund, das
+# Backup auszulassen — im Gegenteil, dann ist der Stand besonders wert,
+# gesichert zu werden.
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/accountability-backup.env
+ExecStart=/home/pi/apps/accountability/scripts/backup-pi.sh
+User=pi
+# Der Pi macht nachts noch anderes (habitloop 03:30, Cron um 02:00/03:00). Das
+# Backup darf warten, es hat keine Frist.
+Nice=10
+IOSchedulingClass=idle

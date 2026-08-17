@@ -1,0 +1,635 @@
+@import "tailwindcss";
+
+/*
+ * Apple Health als Vorlage.
+ *
+ * Nicht "sieht ähnlich aus", sondern die drei Bausteine, aus denen Health
+ * tatsächlich besteht:
+ *
+ * 1. **Grouped Inset Lists.** Karten auf einem grauen Grund, 16 px vom Rand
+ *    eingerückt, Trennlinien beginnen erst hinter dem Icon. Das ist die
+ *    Grundform jeder Health-Seite.
+ * 2. **Ein Farbsystem pro Kategorie**, nicht eine Markenfarbe. Herz ist rot,
+ *    Schlaf indigo, Ernährung grün. Bei uns: Arbeit, Freizeit, Selbst, Werte,
+ *    Prios bekommen je eine feste Systemfarbe.
+ * 3. **Der State-of-Mind-Screen.** Der ganze Bildschirm wird in den Farbton der
+ *    Antwort getaucht, nicht nur eine Form darin. Das ist der Effekt aus dem
+ *    Screenshot und der Grund, warum er nicht wie ein Formular wirkt.
+ *
+ * Die Werte unten sind die iOS-Systemfarben (systemGroupedBackground,
+ * secondaryLabel, separator …), nicht frei gewählte Grautöne.
+ */
+
+@theme {
+  /* SF Pro, wenn vorhanden. Kein Webfont: auf dem iPhone und auf Marcs Mac ist
+     die echte Systemschrift schon da, und ein geladenes Inter wäre eine
+     schlechtere Kopie davon. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", system-ui, sans-serif;
+  --font-rounded:
+    ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* iOS systemGroupedBackground / secondarySystemGroupedBackground */
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --card-2: #f2f2f7;
+
+  /* iOS label / secondaryLabel / tertiaryLabel */
+  --label: #000000;
+  --label-2: rgb(60 60 67 / 0.6);
+  --label-3: rgb(60 60 67 / 0.3);
+  --separator: rgb(60 60 67 / 0.29);
+
+  --fill: rgb(120 120 128 / 0.12);
+  --fill-2: rgb(120 120 128 / 0.16);
+
+  /* Health-Kategoriefarben (iOS-Systempalette) */
+  --c-work: #ff9500; /* systemOrange */
+  --c-leisure: #30b0c7; /* systemTeal */
+  --c-self: #5e5ce6; /* systemIndigo */
+  --c-values: #ff375f; /* systemPink */
+  --c-prios: #34c759; /* systemGreen */
+  --c-blue: #007aff; /* systemBlue, für Navigation */
+  --c-red: #ff3b30; /* systemRed, für Fehler */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Health im Dunkelmodus liegt auf echtem Schwarz. Das ist Absicht von
+       Apple (OLED) und wird hier übernommen, obwohl "kein #000" eine übliche
+       Regel ist: hier ist Vorlagentreue der Punkt. */
+    --bg: #000000;
+    --card: #1c1c1e;
+    --card-2: #2c2c2e;
+
+    --label: #ffffff;
+    --label-2: rgb(235 235 245 / 0.6);
+    --label-3: rgb(235 235 245 / 0.3);
+    --separator: rgb(84 84 88 / 0.65);
+
+    --fill: rgb(120 120 128 / 0.36);
+    --fill-2: rgb(120 120 128 / 0.32);
+
+    --c-work: #ff9f0a;
+    --c-leisure: #40c8e0;
+    --c-self: #7d7aff;
+    --c-values: #ff375f;
+    --c-prios: #30d158;
+    --c-blue: #0a84ff;
+    --c-red: #ff453a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --card: #1c1c1e;
+  --card-2: #2c2c2e;
+  --label: #ffffff;
+  --label-2: rgb(235 235 245 / 0.6);
+  --label-3: rgb(235 235 245 / 0.3);
+  --separator: rgb(84 84 88 / 0.65);
+  --fill: rgb(120 120 128 / 0.36);
+  --fill-2: rgb(120 120 128 / 0.32);
+  --c-work: #ff9f0a;
+  --c-leisure: #40c8e0;
+  --c-self: #7d7aff;
+  --c-values: #ff375f;
+  --c-prios: #30d158;
+  --c-blue: #0a84ff;
+  --c-red: #ff453a;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--label);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+  overscroll-behavior-y: none;
+}
+
+/* ---------- iOS-Typografie ---------- */
+
+/* Die Größen sind die echten Text Styles, nicht Tailwind-Stufen: Health lebt
+   davon, dass Large Title, Headline und Footnote klar getrennt sind. */
+.t-large-title {
+  font-size: 34px;
+  line-height: 41px;
+  font-weight: 700;
+  letter-spacing: -0.028em;
+}
+.t-title2 {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+.t-title3 {
+  font-size: 20px;
+  line-height: 25px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.t-headline {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.t-body {
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.02em;
+}
+.t-subhead {
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: -0.01em;
+}
+.t-footnote {
+  font-size: 13px;
+  line-height: 18px;
+}
+.t-caption {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Große Zahlen in Health sind gerundet und tabellarisch. */
+.t-metric {
+  font-family: var(--font-rounded);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Grouped Inset List ---------- */
+
+.list {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 11px 16px;
+}
+
+/*
+ * Die Trennlinie beginnt erst hinter dem Icon, nicht am Kartenrand. Genau
+ * dieses Detail unterscheidet eine iOS-Liste von einer HTML-Tabelle.
+ *
+ * Umgesetzt als Hintergrund-Gradient und nicht als box-shadow: ein
+ * eingerückter `inset`-Schatten braucht einen negativen Spread, der die Linie
+ * gleich wieder wegschneidet, und rendert dann nur als Splitter am linken Rand.
+ * Mit background-position ist die Einrückung exakt steuerbar.
+ */
+.row + .row,
+.row-inset + .row-inset {
+  background-image: linear-gradient(var(--separator), var(--separator));
+  background-repeat: no-repeat;
+  background-size: 100% 0.5px;
+  background-position: 0 0;
+}
+.row-inset + .row-inset {
+  background-size: calc(100% - 16px) 0.5px;
+  background-position: 16px 0;
+}
+
+/* Der farbige Icon-Kachel-Look aus Health und den Einstellungen. */
+.icon-tile {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  flex: none;
+  border-radius: 7px;
+  color: #fff;
+}
+
+/* Kleinere Variante ohne Kachel, nur Glyphe in Kategoriefarbe: so macht es die
+   Health-Übersicht bei Messwerten. */
+.icon-plain {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+/* Überschrift über einer Gruppe. Health nutzt hier Title2 in Satzschreibung,
+   nicht das gesperrte Kapitälchen aus den Einstellungen. */
+.group-title {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  padding: 0 4px 8px;
+}
+
+/* ---------- Bedienelemente ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 50px;
+  padding: 0 20px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  transition:
+    transform 120ms ease,
+    opacity 160ms ease,
+    background 160ms ease;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.35;
+}
+
+.btn-filled {
+  background: var(--c-blue);
+  color: #fff;
+}
+.btn-tinted {
+  background: var(--fill);
+  color: var(--c-blue);
+}
+.btn-plain {
+  background: transparent;
+  color: var(--c-blue);
+  min-height: 44px;
+  font-weight: 400;
+}
+
+/* Der runde, durchscheinende Knopf oben links und rechts im Health-Sheet. */
+.btn-circle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--label-2);
+  backdrop-filter: blur(20px);
+  flex: none;
+}
+
+.field {
+  width: 100%;
+  background: var(--card);
+  border: none;
+  border-radius: 12px;
+  padding: 13px 16px;
+  color: var(--label);
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.02em;
+}
+.field::placeholder {
+  color: var(--label-3);
+}
+.field:focus {
+  outline: 2px solid var(--c-blue);
+  outline-offset: -2px;
+}
+
+/* Segmentierte Auswahl (Erreicht / Teilweise / Nicht). */
+.segment {
+  display: flex;
+  padding: 2px;
+  background: var(--fill);
+  border-radius: 9px;
+}
+.segment > button {
+  flex: 1;
+  min-height: 32px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--label);
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+.segment > button[aria-pressed="true"] {
+  background: var(--card);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.12);
+  font-weight: 600;
+}
+
+/* ---------- Der State-of-Mind-Screen ---------- */
+
+/*
+ * Der ganze Bildschirm wird in den Farbton der Antwort getaucht. Ein Farbklecks
+ * auf grauem Grund wäre nur ein Formular mit Deko; erst die getauchte Fläche
+ * macht daraus den Moment, den der Health-Screen erzeugt.
+ */
+.hue-screen {
+  --hue: 150;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      130% 70% at 50% -10%,
+      oklch(95% 0.08 var(--hue)),
+      transparent 65%
+    ),
+    linear-gradient(
+      180deg,
+      oklch(93% 0.07 var(--hue)) 0%,
+      oklch(87% 0.1 var(--hue)) 100%
+    );
+  transition: --hue 500ms ease;
+}
+.hue-screen[data-unset="true"] {
+  background: var(--bg);
+}
+
+/* Text auf der getauchten Fläche: ein dunkler Ton derselben Farbe, wie im
+   Screenshot das Dunkelgrün auf Hellgrün. Neutrales Schwarz würde die Fläche
+   erschlagen. */
+.hue-ink {
+  color: oklch(34% 0.09 var(--hue));
+}
+.hue-ink-2 {
+  color: oklch(46% 0.06 var(--hue));
+}
+.hue-screen[data-unset="true"] .hue-ink {
+  color: var(--label);
+}
+.hue-screen[data-unset="true"] .hue-ink-2 {
+  color: var(--label-2);
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Nicht bis #000 laufen lassen: der Verlauf kippte sichtbar hart um die Form
+     herum ins Schwarze. Health behält die Tönung über den ganzen Schirm. */
+  :root:not([data-theme="light"]) .hue-screen {
+    background:
+      radial-gradient(
+        130% 70% at 50% -10%,
+        oklch(36% 0.09 var(--hue)),
+        transparent 70%
+      ),
+      linear-gradient(
+        180deg,
+        oklch(27% 0.07 var(--hue)) 0%,
+        oklch(16% 0.045 var(--hue)) 100%
+      );
+  }
+  :root:not([data-theme="light"]) .hue-ink {
+    color: oklch(93% 0.07 var(--hue));
+  }
+  :root:not([data-theme="light"]) .hue-ink-2 {
+    color: oklch(78% 0.05 var(--hue));
+  }
+}
+
+/* ---------- Die Form ---------- */
+
+/*
+ * Mehrere ineinanderliegende organische Schichten, nicht eine Blase. Im
+ * Health-Screen strahlen vier bis fünf durchscheinende Umrisse nach außen, der
+ * Kern ist am satten. Die Schichten drehen sich unterschiedlich schnell, was
+ * die langsame Bewegung erzeugt, ohne dass etwas blinkt.
+ */
+.mood {
+  position: relative;
+  width: min(66vw, 17rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.mood-layer {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 42% 36%,
+    oklch(93% 0.11 calc(var(--hue) + 18) / var(--a)),
+    oklch(78% 0.14 var(--hue) / var(--a)) 70%
+  );
+  animation: mood-spin var(--dur) linear infinite;
+}
+
+/*
+ * Jede Schicht braucht einen EIGENEN border-radius.
+ *
+ * Erster Versuch war ein gemeinsamer Radius plus Rotation pro Schicht: das
+ * ergibt fünf konzentrische Kreise, weil eine rotierende Form mit gleichem
+ * Radius wieder wie ein Kreis aussieht. Die organische Anmutung entsteht erst
+ * aus unterschiedlichen Radien, nicht aus der Drehung.
+ */
+.mood-layer:nth-child(1) {
+  --a: 0.14;
+  --dur: 44s;
+  border-radius: 38% 62% 55% 45% / 54% 42% 58% 46%;
+  transform: scale(1);
+}
+.mood-layer:nth-child(2) {
+  --a: 0.18;
+  --dur: 34s;
+  border-radius: 62% 38% 44% 56% / 42% 58% 42% 58%;
+  transform: scale(0.87) rotate(28deg);
+  animation-direction: reverse;
+}
+.mood-layer:nth-child(3) {
+  --a: 0.26;
+  --dur: 26s;
+  border-radius: 48% 52% 64% 36% / 60% 38% 62% 40%;
+  transform: scale(0.72) rotate(64deg);
+}
+.mood-layer:nth-child(4) {
+  --a: 0.48;
+  --dur: 20s;
+  border-radius: 56% 44% 36% 64% / 38% 62% 38% 62%;
+  transform: scale(0.55) rotate(104deg);
+  animation-direction: reverse;
+}
+.mood-layer:nth-child(5) {
+  --a: 0.92;
+  --dur: 16s;
+  border-radius: 44% 56% 58% 42% / 56% 46% 54% 44%;
+  transform: scale(0.36) rotate(148deg);
+  filter: blur(3px);
+}
+
+@keyframes mood-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Ungesetzt: eine gestrichelte Andeutung. Ein farbiger Kern bei 5 würde als
+   Antwort gelesen, obwohl niemand den Regler angefasst hat. */
+.mood[data-unset="true"] .mood-layer {
+  display: none;
+}
+.mood[data-unset="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 42% 58% 56% 44% / 52% 44% 56% 48%;
+  border: 1.5px dashed var(--label-3);
+}
+
+/* ---------- Regler ---------- */
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  cursor: pointer;
+}
+/* Die Schiene wird mitgetönt, nicht neutral weiß-transparent: über dunklem
+   Grund ergibt `white / 0.4` ein flaches Grau, das neben der farbigen Form wie
+   ein fremdes Bauteil aussieht. */
+.slider::-webkit-slider-runnable-track {
+  height: 44px;
+  border-radius: 999px;
+  background: oklch(96% 0.03 var(--hue, 150) / 0.55);
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.06);
+}
+.slider::-moz-range-track {
+  height: 44px;
+  border-radius: 999px;
+  background: oklch(96% 0.03 var(--hue, 150) / 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .slider::-webkit-slider-runnable-track {
+    background: oklch(42% 0.05 var(--hue, 150) / 0.7);
+    box-shadow: none;
+  }
+  :root:not([data-theme="light"]) .slider::-moz-range-track {
+    background: oklch(42% 0.05 var(--hue, 150) / 0.7);
+  }
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 36px;
+  width: 36px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.18),
+    0 4px 12px rgb(0 0 0 / 0.12);
+}
+.slider::-moz-range-thumb {
+  height: 36px;
+  width: 36px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+}
+.slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+/* Kompakter Regler in einer Karte (Bereichs-Scores). */
+.slider-inline {
+  height: 28px;
+}
+.slider-inline::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fill-2);
+}
+.slider-inline::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fill-2);
+}
+.slider-inline::-webkit-slider-thumb {
+  height: 28px;
+  width: 28px;
+  margin-top: -12px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.2),
+    0 3px 8px rgb(0 0 0 / 0.12);
+}
+.slider-inline::-moz-range-thumb {
+  height: 28px;
+  width: 28px;
+}
+
+/* ---------- Fortschritt ---------- */
+
+.progress {
+  height: 4px;
+  background: var(--fill);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--c-blue);
+  border-radius: 999px;
+  transition: width 320ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.hue-screen .progress {
+  background: rgb(255 255 255 / 0.35);
+}
+.hue-screen .progress > span {
+  background: oklch(42% 0.11 var(--hue));
+}
+
+/* ---------- Übergang zwischen Schirmen ---------- */
+
+/* Die iOS-Kurve, kurz. Vierzehn Übergänge pro Loop summieren sich, deshalb
+   220 ms und nicht 400. */
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.screen-in {
+  animation: screen-in 260ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-in,
+  .mood-layer {
+    animation: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+  .progress > span {
+    transition: none;
+  }
+}

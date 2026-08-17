@@ -1,0 +1,35 @@
+# Was NICHT in den Build-Kontext gehört.
+#
+# `.env` und `.env.*` sind der wichtigste Eintrag und stehen aus einem konkreten
+# Grund hier: in LifeOS landete eine .env-Datei im Kontext, wurde mit
+# root-Rechten ins Image gebacken, und der `node`-Nutzer starb beim Start mit
+# `EACCES: permission denied, open '/app/.env'`. Dieselbe Datei wanderte bei
+# einem früheren Deploy per rsync auf den Pi und lag dort welt-lesbar. Die
+# Umgebung kommt zur Laufzeit über `env_file`, nie über eine Image-Schicht.
+.env
+.env.*
+
+node_modules
+.next
+data
+
+# `.git` allein greift in Docker nur auf der obersten Ebene. `**/.git` fängt
+# auch verirrte Repositories in Unterordnern — unter app/ liegt eines.
+.git
+**/.git
+.gitignore
+
+# Nur für Betrieb und Entwicklung, nichts davon baut mit.
+deploy
+scripts
+docs
+.claude
+
+*.tsbuildinfo
+*.log
+.DS_Store
+
+# Testdateien bleiben absichtlich IM Kontext: `next build` prüft die Typen des
+# ganzen Projekts, und dieselbe Prüfung im Image zu haben ist der Sinn der
+# Sache. Sie landen ohnehin nicht im Laufzeit-Image, das nur aus
+# .next/standalone besteht.

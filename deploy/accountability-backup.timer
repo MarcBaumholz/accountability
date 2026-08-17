@@ -1,0 +1,13 @@
+[Unit]
+Description=Accountability-Backup jede Nacht um 04:10
+
+[Timer]
+# 04:10, also nach habitloop (03:30), LifeOS (03:50) und den Cron-Jobs um
+# 02:00/03:00. Der Pi soll nicht alles gleichzeitig stemmen.
+OnCalendar=*-*-* 04:10:00
+# War der Pi um 04:10 aus, wird nachgeholt, sobald er wieder läuft.
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

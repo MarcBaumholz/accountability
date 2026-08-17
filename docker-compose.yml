@@ -1,0 +1,78 @@
+services:
+  accountability:
+    build: .
+    image: accountability:latest
+    container_name: accountability
+    # Nur 127.0.0.1. `cloudflared` erreicht den Port, das Heimnetz nicht — und
+    # damit kann niemand von außen direkt an den Port und den Header
+    # `Cf-Access-Authenticated-User-Email` selbst setzen. Diese Bindung ist
+    # keine Härtung obendrauf, sie ist die Grundlage des Auth-Modells (PRD 08).
+    ports:
+      - "127.0.0.1:8100:8100"
+    # Nur ACC_PEOPLE liegt hier (die zwei erlaubten Adressen). Die Datei wird
+    # beim ersten Deploy angelegt und danach nicht überschrieben; DEV_USER_EMAIL
+    # gehört ausdrücklich NICHT hinein.
+    env_file:
+      - .env
+    environment:
+      # Ohne TZ läuft der Container in UTC. Diese App rechnet ISO-Wochen aus der
+      # lokalen Zeit: ein Eintrag am Sonntagabend 23:30 Berlin ist in UTC noch
+      # Sonntag 21:30 — dieselbe Woche. Aber am Montag 00:30 Berlin ist es in
+      # UTC Sonntag 23:30, also die VORWOCHE, und der Eintrag landet in der
+      # falschen Woche. Genau dieser Fall (Sonntagabend/Montagnacht) ist die
+      # Zeit, in der ein Wochenrückblick geschrieben wird.
+      TZ: Europe/Berlin
+      HOSTNAME: 0.0.0.0
+      PORT: 8100
+      # Absolut und auf das Volume. Ein relativer Pfad hätte die Datenbank in
+      # eine Image-Schicht gelegt, und jeder Redeploy hätte die Daten gelöscht.
+      # Steht hier und nicht in .env, damit es nicht versehentlich änderbar ist.
+      ACC_DB_PATH: /app/data/accountability.db
+    volumes:
+      # Das Einzige, was einen Redeploy überleben muss. Alles andere im
+      # Container ist wegwerfbar.
+      - ./data:/app/data
+    restart: unless-stopped
+    # PID 1, das SIGTERM weitergibt und Zombies erntet. Ohne init braucht ein
+    # `docker compose down` zehn Sekunden Timeout statt einer sauberen Beendung
+    # — und ein hart getöteter SQLite-Schreiber ist genau das, was man nicht
+    # will.
+    init: true
+    # ACHTUNG, gemessen am 2026-08-17: dieses Limit wirkt auf diesem Pi NICHT.
+    # Der Kernel bootet mit `cgroup_disable=memory`, /sys/fs/cgroup/
+    # cgroup.controllers listet nur cpuset/cpu/io/pids, und `docker compose up`
+    # sagt beim Start "Your kernel does not support memory limit capabilities
+    # … Limitation discarded". `docker inspect` bestätigt Memory=0 — für diesen
+    # Container genau wie für lifeos.
+    #
+    # Die Zeile bleibt trotzdem stehen: sie ist richtig, kostet nichts und
+    # greift an dem Tag, an dem der Kernel-Parameter verschwindet. Sie darf nur
+    # nicht als Schutz GEZÄHLT werden. Wer den Schutz wirklich will, muss
+    # `cgroup_enable=memory cgroup_memory=1` in /boot/firmware/cmdline.txt
+    # setzen und den Pi neu starten — mit fünfzehn Containern darauf ist das
+    # eine Entscheidung für Marc, kein Nebeneffekt eines Deploys.
+    #
+    # 512 MB wären für Next im Server-Modus mit zwei Nutzern reichlich; der
+    # Build läuft außerhalb dieser Grenze und ist davon ohnehin nicht betroffen.
+    mem_limit: 512m
+    # Das hier wirkt: der pids-Controller ist vorhanden, `docker inspect` zeigt
+    # PidsLimit=256. Deckel gegen eine Prozess-Lawine.
+    pids_limit: 256
+    # Schreibbar sind nur das Datenvolume und /tmp. Die App optimiert keine
+    # Bilder und hat keinen ISR-Cache, muss also nichts in .next schreiben —
+    # sollte sich das ändern, fällt es sofort beim Deploy auf und nicht später
+    # still.
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Ohne Rotation frisst das Container-Log irgendwann die SD-Karte, und auf
+    # dieser Karte liegen auch die Backups.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
